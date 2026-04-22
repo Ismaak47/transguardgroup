@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     // Inject Application dropdown identical to Services dropdown
     html = html.replace(
       /<li id="menu-item-889"[^>]*>.*?<\/li>/is,
-      `<li id="menu-item-889" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-889 nav-item ">
+      `<li id="menu-item-889" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-889 nav-item dropdown">
         <a href="#" class="nav-link ">APPLICATION</a>
         <ul class="sub-menu dropdown-content drop-tg">
           <li class="menu-item menu-item-type-post_type nav-item "><a href="/apply-now/" class="nav-link ">APPLY NOW</a></li>
@@ -57,10 +57,9 @@ export default async function handler(req, res) {
                 if (window.innerWidth <= 767) {
                   e.preventDefault();
                   e.stopPropagation(); // prevent bubbling to the buggy .nav-item.dropdown listener
-                  var $dropdown = window.jQuery(this).siblings('.dropdown-content');
-                  // auto-close other top-level dropdowns
-                  window.jQuery('.dropdown-content').not($dropdown).not($dropdown.find('.dropdown-content')).slideUp();
-                  $dropdown.slideToggle();
+                  // Close all dropdowns first, then open only the clicked one
+                  window.jQuery('.dropdown-content').slideUp();
+                  window.jQuery(this).siblings('.dropdown-content').slideDown();
                 }
               });
             }
