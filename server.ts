@@ -12,7 +12,12 @@ async function startServer() {
     
     try {
       const fetchUrl = new URL(targetPath, "https://transguardgroup.com").href;
-      const response = await fetch(fetchUrl);
+      const response = await fetch(fetchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
+      });
       let html = await response.text();
       
       // Update specific text to match the requested capitalized words
@@ -20,7 +25,7 @@ async function startServer() {
       html = html.replace(/>\s*Careers\s*</gi, '>APPLICATION<');
 
       // Inject DNS prefetching, preconnections, base tag, link interceptor, and recaptcha hider
-      html = html.replace('</head>', `
+      html = html.replace(/<\/head>/i, `
         <base href="https://transguardgroup.com/">
         <link rel="preconnect" href="https://transguardgroup.com" crossorigin>
         <link rel="dns-prefetch" href="https://transguardgroup.com">
@@ -61,9 +66,22 @@ async function startServer() {
 
             document.addEventListener('click', function(e) {
               var link = e.target.closest('a');
-              if (!link || !link.href) return;
-              var hrefAttr = link.getAttribute('href');
-              if (!hrefAttr || hrefAttr.startsWith('#') || hrefAttr.startsWith('javascript:')) return;
+              if (!link) return;
+              var hrefAttr = (link.getAttribute('href') || '').trim();
+              
+              // Handle Hash Links (fixes the mobile dropdown "refused to connect" bug caused by <base> tags)
+              if (hrefAttr.startsWith('#')) {
+                e.preventDefault();
+                if (hrefAttr.length > 1) {
+                  try {
+                    var targetEl = document.getElementById(hrefAttr.substring(1)) || document.querySelector('[name="' + hrefAttr.substring(1) + '"]');
+                    if (targetEl) targetEl.scrollIntoView();
+                  } catch(err) {}
+                }
+                return;
+              }
+
+              if (!hrefAttr || hrefAttr.startsWith('javascript:') || !link.href) return;
               
               try {
                 var url = new URL(link.href);
