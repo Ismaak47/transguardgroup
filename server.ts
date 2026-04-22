@@ -1,6 +1,5 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import https from "https";
 import path from "path";
 
 async function startServer() {
@@ -8,23 +7,32 @@ async function startServer() {
   const PORT = 3000;
 
   // API route to bypass CORS & iframe protections
-  app.get("/api/preview", (req, res) => {
-    https.get("https://transguardgroup.com/", (response) => {
-      // Pass the status code
-      res.status(response.statusCode || 200);
+  app.get("/api/preview", async (req, res) => {
+    try {
+      const response = await fetch("https://transguardgroup.com/");
+      let html = await response.text();
       
-      // Copy headers, but strip ones that prevent iframing
-      for (const key in response.headers) {
-        if (key.toLowerCase() !== 'x-frame-options' && key.toLowerCase() !== 'content-security-policy') {
-          res.setHeader(key, response.headers[key] as string | string[]);
+      // Update specific text to match the requested capitalized words
+      html = html.replace(/>\s*Supplier Login\s*</gi, '>USER LOGIN<');
+      html = html.replace(/>\s*Careers\s*</gi, '>APPLICATION<');
+
+      // Copy headers, but strip ones that prevent iframing or conflict with body injection
+      response.headers.forEach((value, key) => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey !== 'x-frame-options' && 
+            lowerKey !== 'content-security-policy' && 
+            lowerKey !== 'content-encoding' && 
+            lowerKey !== 'content-length' && 
+            lowerKey !== 'transfer-encoding') {
+          res.setHeader(key, value);
         }
-      }
+      });
       
-      response.pipe(res);
-    }).on('error', (err) => {
+      res.status(response.status).send(html);
+    } catch (err) {
       console.error(err);
       res.status(500).send("Error fetching site");
-    });
+    }
   });
 
   // Vite middleware for development

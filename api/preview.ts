@@ -1,20 +1,27 @@
-import https from "https";
+export default async function handler(req, res) {
+  try {
+    const response = await fetch("https://transguardgroup.com/");
+    let html = await response.text();
+    
+    // Replace the specific nav links and enforce capitalization
+    html = html.replace(/>\s*Supplier Login\s*</gi, '>USER LOGIN<');
+    html = html.replace(/>\s*Careers\s*</gi, '>APPLICATION<');
 
-export default function handler(req, res) {
-  // Acts as a proxy to fetch the website across standard Vercel environments
-  https.get("https://transguardgroup.com/", (response) => {
-    res.status(response.statusCode || 200);
-    
-    // Copy headers but strip iframe-blocking protections
-    for (const key in response.headers) {
-      if (key.toLowerCase() !== 'x-frame-options' && key.toLowerCase() !== 'content-security-policy') {
-        res.setHeader(key, response.headers[key]);
+    // Copy headers but strip iframe-blocking and native encodings so express can format
+    response.headers.forEach((value, key) => {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey !== 'x-frame-options' && 
+          lowerKey !== 'content-security-policy' && 
+          lowerKey !== 'content-encoding' && 
+          lowerKey !== 'content-length' && 
+          lowerKey !== 'transfer-encoding') {
+        res.setHeader(key, value);
       }
-    }
+    });
     
-    response.pipe(res);
-  }).on('error', (err) => {
+    res.status(response.status).send(html);
+  } catch (err) {
     console.error(err);
     res.status(500).send("Error fetching site");
-  });
+  }
 }
