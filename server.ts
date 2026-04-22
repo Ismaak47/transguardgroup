@@ -57,6 +57,25 @@ async function startServer() {
           }
         </style>
         <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var checkJq = setInterval(function() {
+              if (window.jQuery) {
+                clearInterval(checkJq);
+                // Fix Transguard's broken mobile dropdown logic where clicking one opens all
+                window.jQuery('li.nav-item.dropdown > a').on('click', function(e) {
+                  if (window.innerWidth <= 767) {
+                    e.preventDefault();
+                    e.stopPropagation(); // prevent bubbling to the buggy .nav-item.dropdown listener
+                    var $dropdown = window.jQuery(this).siblings('.dropdown-content');
+                    // auto-close other top-level dropdowns
+                    window.jQuery('.dropdown-content').not($dropdown).not($dropdown.find('.dropdown-content')).slideUp();
+                    $dropdown.slideToggle();
+                  }
+                });
+              }
+            }, 100);
+          });
+
           (function() {
             var prefetched = {};
             document.addEventListener('mouseover', function(e) {
