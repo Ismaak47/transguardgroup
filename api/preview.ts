@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     html = html.replace(/>\s*Supplier Login\s*</gi, '>USER LOGIN<');
     html = html.replace(/>\s*Careers\s*</gi, '>APPLICATION<');
 
-    // Inject DNS prefetching, preconnections, base tag, and link interceptor
+    // Inject DNS prefetching, preconnections, base tag, link interceptor, and recaptcha hider
     html = html.replace('</head>', `
       <base href="https://transguardgroup.com/">
       <link rel="preconnect" href="https://transguardgroup.com" crossorigin>
@@ -19,6 +19,14 @@ export default async function handler(req, res) {
       <link rel="dns-prefetch" href="https://fonts.gstatic.com">
       <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
       <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+      <style>
+        .grecaptcha-badge { 
+          visibility: hidden !important; 
+          opacity: 0 !important; 
+          display: none !important; 
+          pointer-events: none !important;
+        }
+      </style>
       <script>
         (function() {
           var prefetched = {};
