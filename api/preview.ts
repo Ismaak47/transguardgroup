@@ -15,6 +15,21 @@ export default async function handler(req, res) {
     html = html.replace(/>\s*Supplier Login\s*</gi, '>USER LOGIN<');
     html = html.replace(/>\s*Careers\s*</gi, '>APPLICATION<');
 
+    // Inject Application dropdown identical to Services dropdown
+    html = html.replace(
+      /<li id="menu-item-889"[^>]*>.*?<\/li>/is,
+      `<li id="menu-item-889" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-889 nav-item ">
+        <a href="#" class="nav-link ">APPLICATION</a>
+        <ul class="sub-menu dropdown-content drop-tg">
+          <li class="menu-item menu-item-type-post_type nav-item "><a href="/apply-now/" class="nav-link ">APPLY NOW</a></li>
+          <li class="menu-item menu-item-type-post_type nav-item "><a href="/selected-applicant/" class="nav-link ">SELECTED APPLICANTS</a></li>
+        </ul>
+      </li>`
+    );
+
+    // Prevent mobile dropdown "refused to connect" bug by adding preventDefault to empty hash links
+    html = html.replace(/href="#"/g, 'href="#" onclick="event.preventDefault();"');
+
     // Inject DNS prefetching, preconnections, base tag, link interceptor, and recaptcha hider
     html = html.replace(/<\/head>/i, `
       <base href="https://transguardgroup.com/">
